@@ -1,242 +1,336 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Resolution Swap 🎁</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resolution Swap</title>
 <style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:radial-gradient(circle,#fff7c2,#ffd84d);
-  font-family:'Comic Sans MS','Poppins',cursive;
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Permanent Marker', cursive;
+  background: #fff7b0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+  color: #5a3e1b;
 }
-.game{
-  width:90%;
-  max-width:380px;
-  background:#fff3a0;
-  padding:25px;
-  border-radius:18px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.3);
-  text-align:center;
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
 }
-input{
-  width:90%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  text-align:center;
-  font-size:16px;
+
+.active { display: flex; }
+
+h1 { font-size: 2rem; margin-bottom: 1rem; }
+
+input {
+  padding: 12px;
+  font-size: 1.4rem;
+  border-radius: 12px;
+  border: 2px solid #d9a400;
+  margin-bottom: 20px;
+  width: 80%;
+  text-align: center;
+  background: #fffacd;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
 }
-button{
-  margin-top:15px;
-  padding:12px 25px;
-  border:none;
-  border-radius:25px;
-  background:#ffb703;
-  font-size:18px;
+
+button {
+  padding: 15px 30px;
+  font-size: 1.4rem;
+  border-radius: 12px;
+  border: 2px solid #d9a400;
+  background: #ffe066;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
 }
-.chit{
-  display:none;
-  margin-top:20px;
-  padding:20px;
-  background:#fff;
-  border-radius:12px;
-  animation:open 0.8s ease forwards;
+
+button:active { transform: scale(0.95); }
+
+.lottery {
+  font-size: 1.6rem;
+  margin: 30px 0;
+  padding: 15px 30px;
+  background: #fffacd;
+  border: 2px solid #d9a400;
+  border-radius: 12px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  min-width: 250px;
+  transition: transform 0.6s;
 }
-@keyframes open{
-  from{transform:scale(0);opacity:0}
-  to{transform:scale(1);opacity:1}
+
+p { font-size: 1rem; margin-top: 10px; }
+
+/* Confetti container */
+#confetti {
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 10;
 }
 </style>
 </head>
-
 <body>
 
-<div class="game">
-  <h2>🎁 Resolution Swap</h2>
-  <p>Enter your full name</p>
-  <input id="nameInput" placeholder="YOUR NAME">
-  <br>
-  <button onclick="reveal()">Open Chit 🎟️</button>
-  <div class="chit" id="result"></div>
+<!-- Confetti Container -->
+<canvas id="confetti"></canvas>
+
+<!-- Welcome Screen -->
+<div id="welcome" class="screen active">
+  <h1>🎁 Resolution Swap 🎉</h1>
+  <button onclick="showNameEntry()">Enter Your Name</button>
 </div>
 
-<audio id="sound" src="chit-open.mp3"></audio>
+<!-- Name Entry Screen -->
+<div id="nameEntry" class="screen">
+  <h1>Type Your Name</h1>
+  <input type="text" id="playerName" placeholder="Your name...">
+  <button onclick="startLottery()">Draw My Gift 🎁</button>
+</div>
+
+<!-- Lottery Screen -->
+<div id="lotteryScreen" class="screen">
+  <h1>Spinning the Lottery...</h1>
+  <div class="lottery" id="lotteryName">🎲</div>
+</div>
+
+<!-- Reveal Screen -->
+<div id="revealScreen" class="screen">
+  <h1>🎉 Your Resolution Swap Gift Is For: 🎁</h1>
+  <div id="receiverName" class="lottery" style="margin:20px 0; font-weight:bold;"></div>
+  <button onclick="backToHome()">Done / Back to Home</button>
+</div>
+
+<!-- Sounds -->
+<audio id="drumroll" src="https://freesound.org/data/previews/522/522508_10368526-lq.mp3"></audio>
+<audio id="revealSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-// 🔒 RANDOMIZED ONCE (NOT LINE-WISE) & FIXED
-const assignments = {
-"AARUSH GUPTA":"SHRUTI",
-"AASTHA ROHILA":"MOHD ZAID",
-"ABHINAV RAJ SINGH":"GARGI KAUSHIK",
-"ABHISHEK KUMAR":"KHUSHI CHAUDHARY",
-"ABHISHEK PRATAP SINGH":"SARIYA ASLAM",
-"ABHISHEK VERMA":"KARTIK CHAUDHARY",
-"ADARSH MAURYA":"SHLOK KUMAR",
-"ADIBA":"AYUSH",
-"ADITI SINGH":"RUDRANSH RASTOGI",
-"AHMAD RAHMANI":"ANKITA MEENA",
-"AJAY ARORA":"VANSHIKA",
-"AJAZ AHMAD KHAN":"MAANAS VAID",
-"ALINA GARG":"HIMANSHU YADAV",
-"AMAAN ZUBERI":"SHIVANI SINGH",
-"ANANY AGARWAL":"GULSHAN KUMAR",
-"ANCHIT GANGWAR":"TANU SAINI",
-"ANJU PATEL":"SHIVAM SINGH",
-"ANKIT KUMAR PATEL":"VENUS CHAUDHARY",
-"ANKITA AGARWAL":"RIBHAV AGRAWAL",
-"ANKITA MEENA":"PRASHU HANUMAN NAYAK",
-"ANSH MISHRA":"SURBHI SHARMA",
-"ANSHUMAN SINGH":"RAVI VARSHNEY",
-"ANUJ POONIA":"SHREYA SINGH",
-"ANUPAMA SINGH":"ZIA UR RAHMAN",
-"ANUSHKA SHARMA":"VISHAL PATEL",
-"AREEBA SIDDIQUI":"SATYAM RAI",
-"ASCHARYA NAGARJUN":"VIVEK",
-"ASHI GUPTA":"SAKSHAM ARYA",
-"ATUL TEOTIA":"MUBASHIRA ANSARI",
-"AYUSH":"SHASHANK GUPTA",
-"AZEEM":"PRIYANSHU SHARMA",
-"DEEKSHA SINGH":"SHIVANG SAINI",
-"DEEPAK":"TEJASVITA SINGH",
-"DEVANSH":"LAKSHAY",
-"DHANANJAY GAUTAM":"ISHITA VATS",
-"DHRUV YADAV":"NANCY ADHANA",
-"ESHA RAGHAV":"SAURABH YADAV",
-"EVAAN KHAN":"TARUSHI RANA",
-"FAISAL IQBAL":"SUNIL KUMAR",
-"GARGI KAUSHIK":"SHIVANI GUPTA",
-"GARIMA":"OJAS GUPTA",
-"GLORIYA SINGH":"NOOR AKMAL ANSARI",
-"GULSHAN KUMAR":"PRATHAM AGARWAL",
-"HIMANSHU AGARWAL":"SHIVAM",
-"HIMANSHU YADAV":"SRISHTI RANA",
-"HUMZA NEYAZ":"VANSH GAUTAM",
-"HUZAIFA FARHEEN":"SUMAIRA AKBAR",
-"ISHA PRITAM":"MOHD FAISAL",
-"ISHITA VATS":"VIDHI MISHRA",
-"JAHANVI":"SHUBHAM MALIK",
-"JAHNAVI YADAV":"RITURAJ BHASKAR",
-"KAJAL GERA":"UTKARSH TIWARI",
-"KANCHAN":"PRATIKSHA CHOUDHARY",
-"KARTIK CHAUDHARY":"NANDANI KALWAR",
-"KASHISH VATS":"VANDNA",
-"KHUSHI CHAUDHARY":"SHIKHAR AWASTHI",
-"KOMAL SINGH":"TEJENDRA",
-"KUSHAGRA BHARDWAJ":"SUNIL KUMAR KUSHWAHA",
-"LAKSHAY":"SAUMYA AGARWAL",
-"MAANAS VAID":"YASHASHVI GUPTA",
-"MAHESH KUMAR SAINI":"RUDRA",
-"MAHIMA SINGH":"MOHAMMAD ALI",
-"MANSIJ AGARWAL":"TANISHKA SHARMA",
-"MEHVISH":"YOGESH KUMAR",
-"MOH SARFRAJ":"NIKHIL PATEL",
-"MOHAMMAD ALI":"SHIVANSH KUMAR",
-"MOHAMMAD MUAZ MALIK":"SURUCHI DEVI",
-"MOHAN CHAUDHARY":"SAKSHI KUMARI",
-"MOHD DAAIM":"RANGOLI CHAUDHARY",
-"MOHD FAISAL":"KOMAL SINGH",
-"MOHD SHAHRAN":"DEEPAK",
-"MOHD ZAID":"ADIBA",
-"MUBASHIRA ANSARI":"ANJU PATEL",
-"MUHAMMAD AYAZ":"SAKSHI CHAHAL",
-"MUSKAN KUMARI":"UBAID CHAUDHARY",
-"NADISH RAJORA":"AJAY ARORA",
-"NANCY ADHANA":"FAISAL IQBAL",
-"NANDANI KALWAR":"ASCHARYA NAGARJUN",
-"NIKHIL PATEL":"GULSHAN KUMAR",
-"NOOR AKMAL ANSARI":"DEVANSH",
-"OJAS GUPTA":"DEEPAK",
-"PAWAN SUTHAR":"MOHD DAAIM",
-"PRASHU HANUMAN NAYAK":"RASHI SINGH",
-"PRATHAM AGARWAL":"VINEET SHARMA",
-"PRIYANSHU GOND":"KANCHAN",
-"PRIYANSHU SHARMA":"JAHANVI",
-"RAHUL GIRI":"MAHIMA SINGH",
-"RANGOLI CHAUDHARY":"AHMAD RAHMANI",
-"RASHI SINGH":"ANSHUMAN SINGH",
-"RAVI VARSHNEY":"GARIMA",
-"RIBHAV AGRAWAL":"SNEHA DHIRAN",
-"RISHABH SAINI":"HIMANSHU AGARWAL",
-"RITURAJ BHASKAR":"PAWAN SUTHAR",
-"RUDRA":"MANSIJ AGARWAL",
-"RUDRANSH RASTOGI":"KASHISH VATS",
-"SAHIL ZAMEER":"AZEEM",
-"SAIF AHMAD":"ANSH MISHRA",
-"SAKSHI CHAHAL":"ADARSH MAURYA",
-"SAKSHI KUMARI":"AJAZ AHMAD KHAN",
-"SANSKRITI SHARMA":"ANANY AGARWAL",
-"SARIYA ASLAM":"ISHA PRITAM",
-"SATYAM RAI":"SAIF AHMAD",
-"SAUMYA AGARWAL":"MAANAS VAID",
-"SAURABH YADAV":"ABHINAV RAJ SINGH",
-"SHAHANSHAH VERMA":"ALINA GARG",
-"SHASHANK GUPTA":"ABHISHEK VERMA",
-"SHIKHAR AWASTHI":"ANUJ POONIA",
-"SHIVAM":"KUSHAGRA BHARDWAJ",
-"SHIVAM KATARIYA":"ATUL TEOTIA",
-"SHIVAM SINGH":"SHREYA SINGH",
-"SHIVANG SAINI":"ABHISHEK KUMAR",
-"SHIVANI GUPTA":"ANUPAMA SINGH",
-"SHIVANI SINGH":"GLORIYA SINGH",
-"SHIVANSH KUMAR":"HUMZA NEYAZ",
-"SHLOK KUMAR":"ANKITA AGARWAL",
-"SHREYA SINGH":"SHIVAM SINGH",
-"SHRIEYA SINGH":"AJAZ AHMAD KHAN",
-"SHRINIDHI PANDEY":"ANKIT KUMAR PATEL",
-"SHRUTI":"EVAAN KHAN",
-"SHUBHAM MALIK":"ABHISHEK PRATAP SINGH",
-"SNEHA DHIRAN":"ANSHUMAN SINGH",
-"SRISHTI RANA":"HIMANSHU YADAV",
-"SRUSHTI JAIN":"RAHUL GIRI",
-"SUMAIRA AKBAR":"SATYAM RAI",
-"SUNIL KUMAR":"MUSKAN KUMARI",
-"SUNIL KUMAR KUSHWAHA":"KAJAL GERA",
-"SURBHI SHARMA":"RISHABH SAINI",
-"SURUCHI DEVI":"MOHD SHAHRAN",
-"TANISHKA SHARMA":"ESHA RAGHAV",
-"TANU SAINI":"HIMANSHU AGARWAL",
-"TARUSHI RANA":"DEVANSH",
-"TEJASVITA SINGH":"ADITI SINGH",
-"TEJENDRA":"ASHI GUPTA",
-"UBAID CHAUDHARY":"NADISH RAJORA",
-"UTKARSH TIWARI":"ABHISHEK VERMA",
-"VANDNA":"KARTIK CHAUDHARY",
-"VANSH GAUTAM":"SAHIL ZAMEER",
-"VANSH SHARMA":"GARGI KAUSHIK",
-"VANSHIKA":"MOHD FAISAL",
-"VARNIKA":"SHRINIDHI PANDEY",
-"VENUS CHAUDHARY":"PRIYANSHU GOND",
-"VIDHI MISHRA":"DHANANJAY GAUTAM",
-"VIKASH PACHAR":"MAHESH KUMAR SAINI",
-"VINEET SHARMA":"MOHD ZAID",
-"VISHAL PATEL":"SHIVAM KATARIYA",
-"VIVEK":"MUHAMMAD AYAZ",
-"YADUNANDAN":"NIKHIL PATEL",
-"YASHASHVI GUPTA":"ABHISHEK KUMAR",
-"YOGESH KUMAR":"KOMAL SINGH",
-"ZIA UR RAHMAN":"FAISAL IQBAL",
-"PRATIKSHA CHOUDHARY":"ANJU PATEL",
-"SAKSHAM ARYA":"AARUSH GUPTA"
-};
+// Participants with fixed pairs
+const participants = [
+  {name: "ANANY AGARWAL", assigned: "DHRUV YADAV"},
+{name: "MOHD SHAHRAN", assigned: "SARIYA ASLAM"},
+{name: "SAKSHI KUMARI", assigned: "ABHISHEK KUMAR"},
+{name: "SUMAIRA AKBAR", assigned: "SHIVANI SINGH"},
+{name: "SHIVANI GUPTA", assigned: "SAKSHI KUMARI"},
+{name: "SHIVANG SAINI", assigned: "MAHESH KUMAR SAINI"},
+{name: "SANSKRITI SHARMA", assigned: "ZIA UR RAHMAN"},
+{name: "SARIYA ASLAM", assigned: "SAKSHI CHAHAL"},
+{name: "ADITI SINGH", assigned: "SHREYA SINGH"},
+{name: "SAKSHI CHAHAL", assigned: "AHMAD RAHMANI"},
+{name: "SAIF AHMAD", assigned: "ANKITA AGARWAL"},
+{name: "ADIBA", assigned: "KHUSHI CHAUDHARY"},
+{name: "SHIVAM KATARIYA", assigned: "VANDNA"},
+{name: "TEJENDRA", assigned: "YOGESH KUMAR"},
+{name: "VIVEK", assigned: "HUZAIFA FARHEEN"},
+{name: "AASTHA ROHILA", assigned: "RIBHAV AGRAWAL"},
+{name: "NANCY ADHANA", assigned: "PRATHAM AGARWAL"},
+{name: "GARGI KAUSHIK", assigned: "SHIVANG SAINI"},
+{name: "PRIYANSHU SHARMA", assigned: "KAJAL GERA"},
+{name: "VIDHI MISHRA", assigned: "SHRINIDHI PANDEY"},
+{name: "MUSKAN KUMARI", assigned: "ANANY AGARWAL"},
+{name: "MAHIMA SINGH", assigned: "VANSHIKA"},
+{name: "PRASHU HANUMAN NAYAK", assigned: "SAIF AHMAD"},
+{name: "HUMZA NEYAZ", assigned: "SANSKRITI SHARMA"},
+{name: "ANKIT KUMAR PATEL", assigned: "SHASHANK GUPTA"},
+{name: "SHLOK KUMAR", assigned: "PAWAN SUTHAR"},
+{name: "AARUSH GUPTA", assigned: "AREEBA SIDDIQUI"},
+{name: "HIMANSHU YADAV", assigned: "HIMANSHU AGARWAL"},
+{name: "ISHITA VATS", assigned: "MAANAS VAID"},
+{name: "ANCHIT GANGWAR", assigned: "DEEKSHA SINGH"},
+{name: "VENUS CHAUDHARY", assigned: "SHLOK KUMAR"},
+{name: "HUZAIFA FARHEEN", assigned: "MOHD FAISAL"},
+{name: "TEJASVITA SINGH", assigned: "ANKIT KUMAR PATEL"},
+{name: "MOHD ZAID", assigned: "MOH SARFRAJ"},
+{name: "ABHINAV RAJ SINGH", assigned: "ANCHIT GANGWAR"},
+{name: "AJAY ARORA", assigned: "DEEPAK"},
+{name: "MUHAMMAD AYAZ", assigned: "PRATIKSHA CHOUDHARY"},
+{name: "TANU SAINI", assigned: "SHIVAM SINGH"},
+{name: "ABHISHEK VERMA", assigned: "AJAZ AHMAD KHAN"},
+{name: "DEEKSHA SINGH", assigned: "FAISAL IQBAL"},
+{name: "LAKSHAY", assigned: "VENUS CHAUDHARY"},
+{name: "JAHANVI", assigned: "MOHD SHAHRAN"},
+{name: "SHIVANSH KUMAR", assigned: "ANJU PATEL"},
+{name: "SHIVAM", assigned: "ALINA GARG"},
+{name: "ESHA RAGHAV", assigned: "AMAAN ZUBERI"},
+{name: "RITURAJ BHASKAR", assigned: "GULSHAN KUMAR"},
+{name: "ASCHARYA NAGARJUN", assigned: "SNEHA DHIRAN"},
+{name: "VISHAL PATEL", assigned: "PRASHU HANUMAN NAYAK"},
+{name: "SAHIL ZAMEER", assigned: "ANKITA MEENA"},
+{name: "ALINA GARG", assigned: "ISHITA VATS"},
+{name: "ANUJ POONIA", assigned: "VINEET SHARMA"},
+{name: "MEHVISH", assigned: "AARUSH GUPTA"},
+{name: "MOHAMMAD ALI", assigned: "TEJASVITA SINGH"},
+{name: "NOOR AKMAL ANSARI", assigned: "TANISHKA SHARMA"},
+{name: "SHIVANI SINGH", assigned: "ASHI GUPTA"},
+{name: "VARNIKA", assigned: "KASHISH VATS"},
+{name: "ANJU PATEL", assigned: "SHIVANI GUPTA"},
+{name: "ANUSHKA SHARMA", assigned: "VARNIKA"},
+{name: "GLORIYA SINGH", assigned: "MUBASHIRA ANSARI"},
+{name: "ABHISHEK KUMAR", assigned: "NANCY ADHANA"},
+{name: "AMAAN ZUBERI", assigned: "ANUJ POONIA"},
+{name: "VANSH SHARMA", assigned: "UBAID CHAUDHARY"},
+{name: "ASHI GUPTA", assigned: "MEHVISH"},
+{name: "KARTIK CHAUDHARY", assigned: "SHIVAM"},
+{name: "GULSHAN KUMAR", assigned: "PRIYANSHU GOND"},
+{name: "ANKITA AGARWAL", assigned: "JAHANVI"},
+{name: "FAISAL IQBAL", assigned: "ADITI SINGH"},
+{name: "HIMANSHU AGARWAL", assigned: "ESHA RAGHAV"},
+{name: "ANUPAMA SINGH", assigned: "ANUSHKA SHARMA"},
+{name: "DHANANJAY GAUTAM", assigned: "ABHINAV RAJ SINGH"},
+{name: "SHREYA SINGH", assigned: "ASCHARYA NAGARJUN"},
+{name: "UBAID CHAUDHARY", assigned: "RAHUL GIRI"},
+{name: "MUBASHIRA ANSARI", assigned: "DEVANSH"},
+{name: "NADISH RAJORA", assigned: "VISHAL PATEL"},
+{name: "AHMED RAHMANI", assigned: "MAHIMA SINGH"},
+{name: "KANCHAN", assigned: "ANUPAMA SINGH"},
+{name: "SHRINIDHI PANDEY", assigned: "SHRUTI"},
+{name: "RASHI SINGH", assigned: "JAHNAVI YADAV"},
+{name: "JAHNAVI YADAV", assigned: "DHANANJAY GAUTAM"},
+{name: "PRATHAM AGARWAL", assigned: "RAVI VARSHNEY"},
+{name: "SHASHANK GUPTA", assigned: "SHIVAM KATARIYA"},
+{name: "SATYAM RAI", assigned: "MOHAMMAD ALI"},
+{name: "SUNIL KUMAR KUSHWAHA", assigned: "RUDRA"},
+{name: "SAUMYA AGARWAL", assigned: "LAKSHAY"},
+{name: "AZEEM", assigned: "SAHIL ZAMEER"},
+{name: "ANKITA MEENA", assigned: "SHIVANSH KUMAR"},
+{name: "DEEPAK", assigned: "HUMZA NEYAZ"},
+{name: "AJAZ AHMAD KHAN", assigned: "AASTHA ROHILA"},
+{name: "ATUL TEOTIA", assigned: "GARGI KAUSHIK"},
+{name: "MAHESH KUMAR SAINI", assigned: "MOHD ZAID"},
+{name: "MOHD DAAIM", assigned: "ANSH MISHRA"},
+{name: "SURBHI SHARMA", assigned: "RITURAJ BHASKAR"},
+{name: "SHAHANSHAH VERMA", assigned: "SAUMYA AGARWAL"},
+{name: "SHIVAM SINGH", assigned: "MOHAN CHAUDHARY"},
+{name: "MOHD SARFRAJ", assigned: "AJAY ARORA"},
+{name: "SUNIL KUMAR", assigned: "SUMAIRA AKBAR"},
+{name: "SHRIEYA SINGH", assigned: "RASHI SINGH"},
+{name: "KAJAL GERA", assigned: "HIMANSHU YADAV"},
+{name: "MANSIJ AGARWAL", assigned: "UTKARSH TIWARI"},
+{name: "KASHISH VATS", assigned: "ADIBA"},
+{name: "NIKHIL PATEL", assigned: "TEJENDRA"},
+{name: "PRATIKSHA CHOUDHARY", assigned: "VANSH SHARMA"},
+{name: "RAHUL GIRI", assigned: "SHIKHAR AWASTHI"},
+{name: "DHRUV YADAV", assigned: "RISHABH SAINI"},
+{name: "VIKASH PACHAR", assigned: "MOHD DAAIM"},
+{name: "TANISHKA SHARMA", assigned: "KOMAL SINGH"},
+{name: "SHUBHAM MALIK", assigned: "ADARSH MAURYA"},
+{name: "ADARSH MAURYA", assigned: "ATUL TEOTIYA"},
+{name: "RISHABH SAINI", assigned: "PRIYANSHU SHARMA"},
+{name: "TARUSHI RANA", assigned: "KANCHAN"},
+{name: "YOGESH KUMAR", assigned: "ISHA PRITAM"},
+{name: "VINEET SHARMA", assigned: "KUSHAGRA BHARDWAJ"},
+{name: "RIBHAV AGRAWAL", assigned: "GLORIYA SINGH"},
+{name: "ANUSHUMAN SINGH", assigned: "YASHASHVI GUPTA"},
+{name: "ZIA UR RAHMAN", assigned: "YADUNANDAN"},
+{name: "ISHA PRITAM", assigned: "NANDANI KALWAR"},
+{name: "SRUSHTI JAIN", assigned: "NOOR AKMAL ANSARI"},
+{name: "EVAAN KHAN", assigned: "SUNIL KUMAR"},
+{name: "MOHAN CHAUDHARY", assigned: "SURUCHI DEVI"},
+{name: "VANSHIKA", assigned: "NIKHIL PATEL"},
+{name: "SAURABH YADAV", assigned: "VIVEK"},
+{name: "RANGOLI CHAUDHARY", assigned: "SUNIL KUMAR KUSHWAHA"},
+{name: "AREEBA SIDDIQUI", assigned: "SAURABH YADAV"},
+{name: "MAANAS VAID", assigned: "SHRISTI RANA"},
+{name: "DEVANSH", assigned: "MUHAMMAD AYAZ"},
+{name: "SHIKHAR AWASTHI", assigned: "SHAHANSHAH VERMA"},
+{name: "KOMAL SINGH", assigned: "ANSHUMAN SINGH"},
+{name: "RUDRANSH RASTOGI", assigned: "ABHISHEK VERMA"},
+{name: "SRISHTI RANA", assigned: "SURBHI SHARMA"},
+{name: "VANDNA", assigned: "SRUSHTI JAIN"},
+{name: "PRTYANSHU GOND", assigned: "AZEEM"},
+{name: "OJAS GUPTA", assigned: "EVAAN KHAN"},
+{name: "GARIMA", assigned: "SATYAM RAI"},
+{name: "KUSHAGRA BHARDWAJ", assigned: "VIKASH PACHAR"},
+{name: "YADUNANDAN", assigned: "MANSIJ AGARWAL"},
+{name: "MOHD FAISAL", assigned: "TANU SAINI"},
+{name: "SNEHA DHIRAN", assigned: "SHUBHAM MALIK"},
+{name: "UTKARSH TIWARI", assigned: "RANGOLI CHAUDHARY"},
+{name: "VANSH GAUTAM", assigned: "MUSKAN KUMARI"},
+{name: "ANSH MISHRA", assigned: "GARIMA"},
+{name: "KHUSHI CHAUDHARY", assigned: "VANSH GAUTAM"},
+{name: "YASHASHVI GUPTA", assigned: "KARTIK CHAUDHARY"},
+{name: "RUDRA", assigned: "NADISH RAJORA"},
+{name: "SURUCHI DEVI", assigned: "VIDHI MISHRA"},
+{name: "SHRUTI", assigned: "RUDRANSH RASTOGI"},
+{name: "NANDANI KALWAR", assigned: "OJAS GUPTA"},
+{name: "RAVI VARSHNEY", assigned: "SHRIEYA SINGH"},
+{name: "PAWAN SUTHAR", assigned: "TARUSHI RANA"}
+];
 
-function reveal(){
-  const name=document.getElementById("nameInput").value.trim().toUpperCase();
-  const box=document.getElementById("result");
-  const sound=document.getElementById("sound");
+// Screen functions
+function showNameEntry() {
+  document.getElementById('welcome').classList.remove('active');
+  document.getElementById('nameEntry').classList.add('active');
+}
 
-  if(!assignments[name]){
-    box.style.display="block";
-    box.innerText="Name not found 😕";
-    return;
-  }
+function startLottery() {
+  const playerName = document.getElementById('playerName').value.trim();
+  if (!playerName) { alert("Please enter your name!"); return; }
 
-  sound.play();
-  box.style.display="block";
-  box.innerHTML="🎉 You got<br><b>"+assignments[name]+"</b>";
+  const player = participants.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+  if (!player) { alert("Name not found!"); return; }
+
+  document.getElementById('nameEntry').classList.remove('active');
+  document.getElementById('lotteryScreen').classList.add('active');
+
+  const lotteryDiv = document.getElementById('lotteryName');
+  lotteryDiv.style.transform = "rotateX(0deg)";
+
+  // Play drumroll
+  document.getElementById('drumroll').play();
+
+  let i = 0;
+  const interval = setInterval(() => {
+    lotteryDiv.textContent = participants[i % participants.length].name;
+    lotteryDiv.style.transform = `rotateX(${Math.random()*360}deg)`;
+    i++;
+  }, 100);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    lotteryDiv.style.transform = "rotateX(0deg)";
+    lotteryDiv.textContent = player.assigned;
+
+    // Stop drumroll and play reveal sound
+    document.getElementById('drumroll').pause();
+    document.getElementById('drumroll').currentTime = 0;
+    document.getElementById('revealSound').play();
+
+    // Show confetti
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    setTimeout(() => {
+      document.getElementById('lotteryScreen').classList.remove('active');
+      document.getElementById('receiverName').textContent = player.assigned;
+      document.getElementById('revealScreen').classList.add('active');
+    }, 1000);
+
+  }, 3000);
+}
+
+function backToHome() {
+  document.getElementById('revealScreen').classList.remove('active');
+  document.getElementById('playerName').value = '';
+  document.getElementById('welcome').classList.add('active');
 }
 </script>
 
