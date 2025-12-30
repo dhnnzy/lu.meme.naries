@@ -1,16 +1,100 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Resolution Swap</title>
+<meta charset="UTF-8">
+<title>Resolution Swap 🎁</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Comic Sans MS', 'Poppins', cursive;
+  background: radial-gradient(circle, #fff7c2, #ffd84d);
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game {
+  width: 90%;
+  max-width: 380px;
+  background: #fff3a0;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+input {
+  width: 90%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+
+button {
+  margin-top: 15px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 25px;
+  background: #ffb703;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ff9800;
+}
+
+.chit {
+  margin-top: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  display: none;
+  animation: openChit 0.9s ease forwards;
+}
+
+@keyframes openChit {
+  0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+  60% { transform: scale(1.05) rotate(2deg); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  animation: fall 3s linear forwards;
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(360deg); }
+}
+</style>
 </head>
+
 <body>
 
-<h2>Resolution Swap – Secret Santa</h2>
+<div class="game">
+  <h1>🎁 Resolution Swap</h1>
+  <p>Enter your name exactly</p>
 
-<input id="nameInput" placeholder="Enter your name" />
-<button onclick="reveal()">Reveal</button>
+  <input id="nameInput" placeholder="Your full name">
+  <br>
+  <button onclick="reveal()">Open Chit 🎟️</button>
 
-<h3 id="result"></h3>
+  <div class="chit" id="chitResult"></div>
+</div>
+
+<audio id="chitSound" src="chit-open.mp3"></audio>
 
 <script>
 // ================= PARTICIPANTS =================
@@ -28,14 +112,13 @@ const participants = [
 "GULSHAN KUMAR","HIMANSHU AGARWAL","HIMANSHU YADAV","HUMZA NEYAZ",
 "HUZAIFA FARHEEN","ISHA PRITAM","ISHITA VATS","JAHANVI",
 "JAHNAVI YADAV","KAJAL GERA","KANCHAN","KARTIK CHAUDHARY",
-"KASHISH VATS","KHUSHI CHAUDHARY","KOMAL SINGH",
-"KUSHAGRA BHARDWAJ","LAKSHAY","MAANAS VAID",
-"MAHESH KUMAR SAINI","MAHIMA SINGH","MANSIJ AGARWAL","MEHVISH",
-"MOH SARFRAJ","MOHAMMAD ALI","MOHAMMAD MUAZ MALIK",
-"MOHAN CHAUDHARY","MOHD DAAIM","MOHD FAISAL","MOHD SHAHRAN",
-"MOHD ZAID","MUBASHIRA ANSARI","MUHAMMAD AYAZ","MUSKAN KUMARI",
-"NADISH RAJORA","NANCY ADHANA","NANDANI KALWAR","NIKHIL PATEL",
-"NOOR AKMAL ANSARI","OJAS GUPTA","PAWAN SUTHAR",
+"KASHISH VATS","KHUSHI CHAUDHARY","KOMAL SINGH","KUSHAGRA BHARDWAJ",
+"LAKSHAY","MAANAS VAID","MAHESH KUMAR SAINI","MAHIMA SINGH",
+"MANSIJ AGARWAL","MEHVISH","MOH SARFRAJ","MOHAMMAD ALI",
+"MOHAMMAD MUAZ MALIK","MOHAN CHAUDHARY","MOHD DAAIM","MOHD FAISAL",
+"MOHD SHAHRAN","MOHD ZAID","MUBASHIRA ANSARI","MUHAMMAD AYAZ",
+"MUSKAN KUMARI","NADISH RAJORA","NANCY ADHANA","NANDANI KALWAR",
+"NIKHIL PATEL","NOOR AKMAL ANSARI","OJAS GUPTA","PAWAN SUTHAR",
 "PRASHU HANUMAN NAYAK","PRATHAM AGARWAL","PRIYANSHU GOND",
 "PRIYANSHU SHARMA","RAHUL GIRI","RANGOLI CHAUDHARY","RASHI SINGH",
 "RAVI VARSHNEY","RIBHAV AGRAWAL","RISHABH SAINI","RITURAJ BHASKAR",
@@ -59,58 +142,75 @@ const participants = [
 
 // ================= FIXED PAIRS =================
 const fixedPairs = {
-  "SHREYA SINGH": "SHIVAM SINGH",
   "SAUMYA AGARWAL": "MAANAS VAID"
 };
 
 // ================= SHUFFLE =================
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
 }
 
-// ================= ASSIGNMENT =================
-function generateAssignments() {
-  let assignments = {...fixedPairs};
+// ================= ASSIGNMENTS =================
+function generateAssignments(){
+  let assignments={...fixedPairs};
 
-  let freeGivers = participants.filter(n => !(n in fixedPairs));
-  let usedReceivers = Object.values(fixedPairs);
-  let freeReceivers = participants.filter(n => !usedReceivers.includes(n));
+  let freeGivers=participants.filter(n=>!(n in fixedPairs));
+  let used=Object.values(fixedPairs);
+  let freeReceivers=participants.filter(n=>!used.includes(n));
 
-  let valid = false;
-  while (!valid) {
+  let valid=false;
+  while(!valid){
     shuffle(freeReceivers);
-    valid = true;
-    for (let i = 0; i < freeGivers.length; i++) {
-      if (freeGivers[i] === freeReceivers[i]) {
-        valid = false;
-        break;
+    valid=true;
+    for(let i=0;i<freeGivers.length;i++){
+      if(freeGivers[i]===freeReceivers[i]){
+        valid=false; break;
       }
     }
   }
 
-  for (let i = 0; i < freeGivers.length; i++) {
-    assignments[freeGivers[i]] = freeReceivers[i];
+  for(let i=0;i<freeGivers.length;i++){
+    assignments[freeGivers[i]]=freeReceivers[i];
   }
-
   return assignments;
 }
 
-const secretSanta = generateAssignments();
+// ================= LOCKED STORAGE =================
+let secretSanta;
+if(localStorage.getItem("resolutionSwapData")){
+  secretSanta=JSON.parse(localStorage.getItem("resolutionSwapData"));
+}else{
+  secretSanta=generateAssignments();
+  localStorage.setItem("resolutionSwapData",JSON.stringify(secretSanta));
+}
 
 // ================= UI =================
-function reveal() {
-  const name = document.getElementById("nameInput").value.trim().toUpperCase();
-  const result = document.getElementById("result");
+function reveal(){
+  const name=document.getElementById("nameInput").value.trim().toUpperCase();
+  const chit=document.getElementById("chitResult");
+  const sound=document.getElementById("chitSound");
 
-  if (!secretSanta[name]) {
-    result.innerText = "Name not found!";
+  if(!secretSanta[name]){
+    chit.style.display="block";
+    chit.innerText="Name not found 😕";
     return;
   }
 
-  result.innerText = "🎁 You got: " + secretSanta[name];
+  sound.play();
+  chit.style.display="block";
+  chit.innerHTML="🎉 You got<br><b>"+secretSanta[name]+"</b>";
+
+  for(let i=0;i<20;i++){
+    let c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),3000);
+  }
 }
 </script>
 
