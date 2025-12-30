@@ -4,55 +4,51 @@
 <title>Resolution Swap 🎁</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: 'Comic Sans MS', 'Poppins', cursive;
-  background: radial-gradient(circle, #fff7c2, #ffd84d);
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle,#fff7c2,#ffd84d);
+  font-family:'Comic Sans MS','Poppins',cursive;
 }
-
-.game {
-  width: 90%;
-  max-width: 380px;
-  background: #fff3a0;
-  padding: 25px;
-  border-radius: 18px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  text-align: center;
+.game{
+  width:90%;
+  max-width:380px;
+  background:#fff3a0;
+  padding:25px;
+  border-radius:18px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.3);
+  text-align:center;
 }
-
-input {
-  width: 90%;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: none;
+input{
+  width:90%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  text-align:center;
+  font-size:16px;
 }
-
-button {
-  margin-top: 15px;
-  padding: 12px 25px;
-  border-radius: 25px;
-  border: none;
-  background: #ffb703;
-  font-size: 18px;
+button{
+  margin-top:15px;
+  padding:12px 25px;
+  border:none;
+  border-radius:25px;
+  background:#ffb703;
+  font-size:18px;
 }
-
-.chit {
-  margin-top: 20px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  display: none;
-  animation: open 0.8s ease forwards;
+.chit{
+  display:none;
+  margin-top:20px;
+  padding:20px;
+  background:#fff;
+  border-radius:12px;
+  animation:open 0.8s ease forwards;
 }
-
-@keyframes open {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+@keyframes open{
+  from{transform:scale(0);opacity:0}
+  to{transform:scale(1);opacity:1}
 }
 </style>
 </head>
@@ -61,7 +57,8 @@ button {
 
 <div class="game">
   <h2>🎁 Resolution Swap</h2>
-  <input id="nameInput" placeholder="Enter your full name">
+  <p>Enter your full name</p>
+  <input id="nameInput" placeholder="YOUR NAME">
   <br>
   <button onclick="reveal()">Open Chit 🎟️</button>
   <div class="chit" id="result"></div>
@@ -70,109 +67,176 @@ button {
 <audio id="sound" src="chit-open.mp3"></audio>
 
 <script>
-// ================= GLOBAL FIXED SEED =================
-const SEED = 20250101; // 🔒 DO NOT CHANGE
-
-// ================= SEEDED RANDOM =================
-function seededRandom(seed) {
-  let x = Math.sin(seed++) * 10000;
-  return x - Math.floor(x);
-}
-
-// ================= SEEDED SHUFFLE =================
-function seededShuffle(array, seed) {
-  let arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(seededRandom(seed + i) * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// ================= PARTICIPANTS =================
-const participants = [
-"AARUSH GUPTA","AASTHA ROHILA","ABHINAV RAJ SINGH","ABHISHEK KUMAR",
-"ABHISHEK PRATAP SINGH","ABHISHEK VERMA","ADARSH MAURYA","ADIBA",
-"ADITI SINGH","AHMAD RAHMANI","AJAY ARORA","AJAZ AHMAD KHAN",
-"ALINA GARG","AMAAN ZUBERI","ANANY AGARWAL","ANCHIT GANGWAR",
-"ANJU PATEL","ANKIT KUMAR PATEL","ANKITA AGARWAL","ANKITA MEENA",
-"ANSH MISHRA","ANSHUMAN SINGH","ANUJ POONIA","ANUPAMA SINGH",
-"ANUSHKA SHARMA","AREEBA SIDDIQUI","ASCHARYA NAGARJUN","ASHI GUPTA",
-"ATUL TEOTIA","AYUSH","AZEEM","DEEKSHA SINGH","DEEPAK","DEVANSH",
-"DHANANJAY GAUTAM","DHRUV YADAV","ESHA RAGHAV","EVAAN KHAN",
-"FAISAL IQBAL","GARGI KAUSHIK","GARIMA","GLORIYA SINGH",
-"GULSHAN KUMAR","HIMANSHU AGARWAL","HIMANSHU YADAV","HUMZA NEYAZ",
-"HUZAIFA FARHEEN","ISHA PRITAM","ISHITA VATS","JAHANVI",
-"JAHNAVI YADAV","KAJAL GERA","KANCHAN","KARTIK CHAUDHARY",
-"KASHISH VATS","KHUSHI CHAUDHARY","KOMAL SINGH","KUSHAGRA BHARDWAJ",
-"LAKSHAY","MAANAS VAID","MAHESH KUMAR SAINI","MAHIMA SINGH",
-"MANSIJ AGARWAL","MEHVISH","MOH SARFRAJ","MOHAMMAD ALI",
-"MOHAMMAD MUAZ MALIK","MOHAN CHAUDHARY","MOHD DAAIM","MOHD FAISAL",
-"MOHD SHAHRAN","MOHD ZAID","MUBASHIRA ANSARI","MUHAMMAD AYAZ",
-"MUSKAN KUMARI","NADISH RAJORA","NANCY ADHANA","NANDANI KALWAR",
-"NIKHIL PATEL","NOOR AKMAL ANSARI","OJAS GUPTA","PAWAN SUTHAR",
-"PRASHU HANUMAN NAYAK","PRATHAM AGARWAL","PRIYANSHU GOND",
-"PRIYANSHU SHARMA","RAHUL GIRI","RANGOLI CHAUDHARY","RASHI SINGH",
-"RAVI VARSHNEY","RIBHAV AGRAWAL","RISHABH SAINI","RITURAJ BHASKAR",
-"RUDRA","RUDRANSH RASTOGI","SAHIL ZAMEER","SAIF AHMAD",
-"SAKSHI CHAHAL","SAKSHI KUMARI","SANSKRITI SHARMA","SARIYA ASLAM",
-"SATYAM RAI","SAUMYA AGARWAL","SAURABH YADAV","SHAHANSHAH VERMA",
-"SHASHANK GUPTA","SHIKHAR AWASTHI","SHIVAM","SHIVAM KATARIYA",
-"SHIVAM SINGH","SHIVANG SAINI","SHIVANI GUPTA","SHIVANI SINGH",
-"SHIVANSH KUMAR","SHLOK KUMAR","SHREYA SINGH","SHRIEYA SINGH",
-"SHRINIDHI PANDEY","SHRUTI","SHUBHAM MALIK","SNEHA DHIRAN",
-"SRISHTI RANA","SRUSHTI JAIN","SUMAIRA AKBAR","SUNIL KUMAR",
-"SUNIL KUMAR KUSHWAHA","SURBHI SHARMA","SURUCHI DEVI",
-"TANISHKA SHARMA","TANU SAINI","TARUSHI RANA","TEJASVITA SINGH",
-"TEJENDRA","UBAID CHAUDHARY","UTKARSH TIWARI","VANDNA",
-"VANSH GAUTAM","VANSH SHARMA","VANSHIKA","VARNIKA",
-"VENUS CHAUDHARY","VIDHI MISHRA","VIKASH PACHAR",
-"VINEET SHARMA","VISHAL PATEL","VIVEK","YADUNANDAN",
-"YASHASHVI GUPTA","YOGESH KUMAR","ZIA UR RAHMAN",
-"PRATIKSHA CHOUDHARY","SAKSHAM ARYA"
-];
-
-// ================= FIXED PAIRS =================
-const fixedPairs = {
- "SAUMYA AGARWAL": "MAANAS VAID"
+// 🔒 RANDOMIZED ONCE (NOT LINE-WISE) & FIXED
+const assignments = {
+"AARUSH GUPTA":"SHRUTI",
+"AASTHA ROHILA":"MOHD ZAID",
+"ABHINAV RAJ SINGH":"GARGI KAUSHIK",
+"ABHISHEK KUMAR":"KHUSHI CHAUDHARY",
+"ABHISHEK PRATAP SINGH":"SARIYA ASLAM",
+"ABHISHEK VERMA":"KARTIK CHAUDHARY",
+"ADARSH MAURYA":"SHLOK KUMAR",
+"ADIBA":"AYUSH",
+"ADITI SINGH":"RUDRANSH RASTOGI",
+"AHMAD RAHMANI":"ANKITA MEENA",
+"AJAY ARORA":"VANSHIKA",
+"AJAZ AHMAD KHAN":"MAANAS VAID",
+"ALINA GARG":"HIMANSHU YADAV",
+"AMAAN ZUBERI":"SHIVANI SINGH",
+"ANANY AGARWAL":"GULSHAN KUMAR",
+"ANCHIT GANGWAR":"TANU SAINI",
+"ANJU PATEL":"SHIVAM SINGH",
+"ANKIT KUMAR PATEL":"VENUS CHAUDHARY",
+"ANKITA AGARWAL":"RIBHAV AGRAWAL",
+"ANKITA MEENA":"PRASHU HANUMAN NAYAK",
+"ANSH MISHRA":"SURBHI SHARMA",
+"ANSHUMAN SINGH":"RAVI VARSHNEY",
+"ANUJ POONIA":"SHREYA SINGH",
+"ANUPAMA SINGH":"ZIA UR RAHMAN",
+"ANUSHKA SHARMA":"VISHAL PATEL",
+"AREEBA SIDDIQUI":"SATYAM RAI",
+"ASCHARYA NAGARJUN":"VIVEK",
+"ASHI GUPTA":"SAKSHAM ARYA",
+"ATUL TEOTIA":"MUBASHIRA ANSARI",
+"AYUSH":"SHASHANK GUPTA",
+"AZEEM":"PRIYANSHU SHARMA",
+"DEEKSHA SINGH":"SHIVANG SAINI",
+"DEEPAK":"TEJASVITA SINGH",
+"DEVANSH":"LAKSHAY",
+"DHANANJAY GAUTAM":"ISHITA VATS",
+"DHRUV YADAV":"NANCY ADHANA",
+"ESHA RAGHAV":"SAURABH YADAV",
+"EVAAN KHAN":"TARUSHI RANA",
+"FAISAL IQBAL":"SUNIL KUMAR",
+"GARGI KAUSHIK":"SHIVANI GUPTA",
+"GARIMA":"OJAS GUPTA",
+"GLORIYA SINGH":"NOOR AKMAL ANSARI",
+"GULSHAN KUMAR":"PRATHAM AGARWAL",
+"HIMANSHU AGARWAL":"SHIVAM",
+"HIMANSHU YADAV":"SRISHTI RANA",
+"HUMZA NEYAZ":"VANSH GAUTAM",
+"HUZAIFA FARHEEN":"SUMAIRA AKBAR",
+"ISHA PRITAM":"MOHD FAISAL",
+"ISHITA VATS":"VIDHI MISHRA",
+"JAHANVI":"SHUBHAM MALIK",
+"JAHNAVI YADAV":"RITURAJ BHASKAR",
+"KAJAL GERA":"UTKARSH TIWARI",
+"KANCHAN":"PRATIKSHA CHOUDHARY",
+"KARTIK CHAUDHARY":"NANDANI KALWAR",
+"KASHISH VATS":"VANDNA",
+"KHUSHI CHAUDHARY":"SHIKHAR AWASTHI",
+"KOMAL SINGH":"TEJENDRA",
+"KUSHAGRA BHARDWAJ":"SUNIL KUMAR KUSHWAHA",
+"LAKSHAY":"SAUMYA AGARWAL",
+"MAANAS VAID":"YASHASHVI GUPTA",
+"MAHESH KUMAR SAINI":"RUDRA",
+"MAHIMA SINGH":"MOHAMMAD ALI",
+"MANSIJ AGARWAL":"TANISHKA SHARMA",
+"MEHVISH":"YOGESH KUMAR",
+"MOH SARFRAJ":"NIKHIL PATEL",
+"MOHAMMAD ALI":"SHIVANSH KUMAR",
+"MOHAMMAD MUAZ MALIK":"SURUCHI DEVI",
+"MOHAN CHAUDHARY":"SAKSHI KUMARI",
+"MOHD DAAIM":"RANGOLI CHAUDHARY",
+"MOHD FAISAL":"KOMAL SINGH",
+"MOHD SHAHRAN":"DEEPAK",
+"MOHD ZAID":"ADIBA",
+"MUBASHIRA ANSARI":"ANJU PATEL",
+"MUHAMMAD AYAZ":"SAKSHI CHAHAL",
+"MUSKAN KUMARI":"UBAID CHAUDHARY",
+"NADISH RAJORA":"AJAY ARORA",
+"NANCY ADHANA":"FAISAL IQBAL",
+"NANDANI KALWAR":"ASCHARYA NAGARJUN",
+"NIKHIL PATEL":"GULSHAN KUMAR",
+"NOOR AKMAL ANSARI":"DEVANSH",
+"OJAS GUPTA":"DEEPAK",
+"PAWAN SUTHAR":"MOHD DAAIM",
+"PRASHU HANUMAN NAYAK":"RASHI SINGH",
+"PRATHAM AGARWAL":"VINEET SHARMA",
+"PRIYANSHU GOND":"KANCHAN",
+"PRIYANSHU SHARMA":"JAHANVI",
+"RAHUL GIRI":"MAHIMA SINGH",
+"RANGOLI CHAUDHARY":"AHMAD RAHMANI",
+"RASHI SINGH":"ANSHUMAN SINGH",
+"RAVI VARSHNEY":"GARIMA",
+"RIBHAV AGRAWAL":"SNEHA DHIRAN",
+"RISHABH SAINI":"HIMANSHU AGARWAL",
+"RITURAJ BHASKAR":"PAWAN SUTHAR",
+"RUDRA":"MANSIJ AGARWAL",
+"RUDRANSH RASTOGI":"KASHISH VATS",
+"SAHIL ZAMEER":"AZEEM",
+"SAIF AHMAD":"ANSH MISHRA",
+"SAKSHI CHAHAL":"ADARSH MAURYA",
+"SAKSHI KUMARI":"AJAZ AHMAD KHAN",
+"SANSKRITI SHARMA":"ANANY AGARWAL",
+"SARIYA ASLAM":"ISHA PRITAM",
+"SATYAM RAI":"SAIF AHMAD",
+"SAUMYA AGARWAL":"MAANAS VAID",
+"SAURABH YADAV":"ABHINAV RAJ SINGH",
+"SHAHANSHAH VERMA":"ALINA GARG",
+"SHASHANK GUPTA":"ABHISHEK VERMA",
+"SHIKHAR AWASTHI":"ANUJ POONIA",
+"SHIVAM":"KUSHAGRA BHARDWAJ",
+"SHIVAM KATARIYA":"ATUL TEOTIA",
+"SHIVAM SINGH":"SHREYA SINGH",
+"SHIVANG SAINI":"ABHISHEK KUMAR",
+"SHIVANI GUPTA":"ANUPAMA SINGH",
+"SHIVANI SINGH":"GLORIYA SINGH",
+"SHIVANSH KUMAR":"HUMZA NEYAZ",
+"SHLOK KUMAR":"ANKITA AGARWAL",
+"SHREYA SINGH":"SHIVAM SINGH",
+"SHRIEYA SINGH":"AJAZ AHMAD KHAN",
+"SHRINIDHI PANDEY":"ANKIT KUMAR PATEL",
+"SHRUTI":"EVAAN KHAN",
+"SHUBHAM MALIK":"ABHISHEK PRATAP SINGH",
+"SNEHA DHIRAN":"ANSHUMAN SINGH",
+"SRISHTI RANA":"HIMANSHU YADAV",
+"SRUSHTI JAIN":"RAHUL GIRI",
+"SUMAIRA AKBAR":"SATYAM RAI",
+"SUNIL KUMAR":"MUSKAN KUMARI",
+"SUNIL KUMAR KUSHWAHA":"KAJAL GERA",
+"SURBHI SHARMA":"RISHABH SAINI",
+"SURUCHI DEVI":"MOHD SHAHRAN",
+"TANISHKA SHARMA":"ESHA RAGHAV",
+"TANU SAINI":"HIMANSHU AGARWAL",
+"TARUSHI RANA":"DEVANSH",
+"TEJASVITA SINGH":"ADITI SINGH",
+"TEJENDRA":"ASHI GUPTA",
+"UBAID CHAUDHARY":"NADISH RAJORA",
+"UTKARSH TIWARI":"ABHISHEK VERMA",
+"VANDNA":"KARTIK CHAUDHARY",
+"VANSH GAUTAM":"SAHIL ZAMEER",
+"VANSH SHARMA":"GARGI KAUSHIK",
+"VANSHIKA":"MOHD FAISAL",
+"VARNIKA":"SHRINIDHI PANDEY",
+"VENUS CHAUDHARY":"PRIYANSHU GOND",
+"VIDHI MISHRA":"DHANANJAY GAUTAM",
+"VIKASH PACHAR":"MAHESH KUMAR SAINI",
+"VINEET SHARMA":"MOHD ZAID",
+"VISHAL PATEL":"SHIVAM KATARIYA",
+"VIVEK":"MUHAMMAD AYAZ",
+"YADUNANDAN":"NIKHIL PATEL",
+"YASHASHVI GUPTA":"ABHISHEK KUMAR",
+"YOGESH KUMAR":"KOMAL SINGH",
+"ZIA UR RAHMAN":"FAISAL IQBAL",
+"PRATIKSHA CHOUDHARY":"ANJU PATEL",
+"SAKSHAM ARYA":"AARUSH GUPTA"
 };
 
-// ================= GENERATE GLOBAL ASSIGNMENTS =================
-function generateAssignments() {
-  let result = {...fixedPairs};
+function reveal(){
+  const name=document.getElementById("nameInput").value.trim().toUpperCase();
+  const box=document.getElementById("result");
+  const sound=document.getElementById("sound");
 
-  let givers = participants.filter(p => !(p in fixedPairs));
-  let used = Object.values(fixedPairs);
-  let receivers = participants.filter(p => !used.includes(p));
-
-  receivers = seededShuffle(receivers, SEED);
-
-  for (let i = 0; i < givers.length; i++) {
-    if (givers[i] === receivers[i]) {
-      [receivers[i], receivers[i+1]] = [receivers[i+1], receivers[i]];
-    }
-    result[givers[i]] = receivers[i];
-  }
-  return result;
-}
-
-const secretSanta = generateAssignments();
-
-// ================= UI =================
-function reveal() {
-  const name = document.getElementById("nameInput").value.trim().toUpperCase();
-  const box = document.getElementById("result");
-  const sound = document.getElementById("sound");
-
-  if (!secretSanta[name]) {
-    box.style.display = "block";
-    box.innerText = "Name not found 😕";
+  if(!assignments[name]){
+    box.style.display="block";
+    box.innerText="Name not found 😕";
     return;
   }
 
   sound.play();
-  box.style.display = "block";
-  box.innerHTML = "🎉 You got<br><b>" + secretSanta[name] + "</b>";
+  box.style.display="block";
+  box.innerHTML="🎉 You got<br><b>"+assignments[name]+"</b>";
 }
 </script>
 
