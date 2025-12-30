@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -25,31 +24,21 @@ body {
   text-align: center;
 }
 
-h1 {
-  margin-bottom: 10px;
-}
-
 input {
   width: 90%;
   padding: 12px;
   font-size: 16px;
   border-radius: 10px;
   border: none;
-  outline: none;
 }
 
 button {
   margin-top: 15px;
   padding: 12px 25px;
-  border: none;
   border-radius: 25px;
+  border: none;
   background: #ffb703;
   font-size: 18px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #ff9800;
 }
 
 .chit {
@@ -58,25 +47,12 @@ button:hover {
   background: #fff;
   border-radius: 12px;
   display: none;
-  animation: openChit 0.9s ease forwards;
+  animation: open 0.8s ease forwards;
 }
 
-@keyframes openChit {
-  0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
-  60% { transform: scale(1.05) rotate(2deg); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.confetti {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  top: -10px;
-  animation: fall 3s linear forwards;
-}
-
-@keyframes fall {
-  to { transform: translateY(110vh) rotate(360deg); }
+@keyframes open {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
@@ -84,19 +60,35 @@ button:hover {
 <body>
 
 <div class="game">
-  <h1>🎁 Resolution Swap</h1>
-  <p>Enter your name exactly</p>
-
-  <input id="nameInput" placeholder="Your full name">
+  <h2>🎁 Resolution Swap</h2>
+  <input id="nameInput" placeholder="Enter your full name">
   <br>
   <button onclick="reveal()">Open Chit 🎟️</button>
-
-  <div class="chit" id="chitResult"></div>
+  <div class="chit" id="result"></div>
 </div>
 
-<audio id="chitSound" src="chit-open.mp3"></audio>
+<audio id="sound" src="chit-open.mp3"></audio>
 
 <script>
+// ================= GLOBAL FIXED SEED =================
+const SEED = 20250101; // 🔒 DO NOT CHANGE
+
+// ================= SEEDED RANDOM =================
+function seededRandom(seed) {
+  let x = Math.sin(seed++) * 10000;
+  return x - Math.floor(x);
+}
+
+// ================= SEEDED SHUFFLE =================
+function seededShuffle(array, seed) {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(seededRandom(seed + i) * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // ================= PARTICIPANTS =================
 const participants = [
 "AARUSH GUPTA","AASTHA ROHILA","ABHINAV RAJ SINGH","ABHISHEK KUMAR",
@@ -142,75 +134,45 @@ const participants = [
 
 // ================= FIXED PAIRS =================
 const fixedPairs = {
-  "SAUMYA AGARWAL": "MAANAS VAID"
+ "SAUMYA AGARWAL": "MAANAS VAID"
 };
 
-// ================= SHUFFLE =================
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-}
+// ================= GENERATE GLOBAL ASSIGNMENTS =================
+function generateAssignments() {
+  let result = {...fixedPairs};
 
-// ================= ASSIGNMENTS =================
-function generateAssignments(){
-  let assignments={...fixedPairs};
+  let givers = participants.filter(p => !(p in fixedPairs));
+  let used = Object.values(fixedPairs);
+  let receivers = participants.filter(p => !used.includes(p));
 
-  let freeGivers=participants.filter(n=>!(n in fixedPairs));
-  let used=Object.values(fixedPairs);
-  let freeReceivers=participants.filter(n=>!used.includes(n));
+  receivers = seededShuffle(receivers, SEED);
 
-  let valid=false;
-  while(!valid){
-    shuffle(freeReceivers);
-    valid=true;
-    for(let i=0;i<freeGivers.length;i++){
-      if(freeGivers[i]===freeReceivers[i]){
-        valid=false; break;
-      }
+  for (let i = 0; i < givers.length; i++) {
+    if (givers[i] === receivers[i]) {
+      [receivers[i], receivers[i+1]] = [receivers[i+1], receivers[i]];
     }
+    result[givers[i]] = receivers[i];
   }
-
-  for(let i=0;i<freeGivers.length;i++){
-    assignments[freeGivers[i]]=freeReceivers[i];
-  }
-  return assignments;
+  return result;
 }
 
-// ================= LOCKED STORAGE =================
-let secretSanta;
-if(localStorage.getItem("resolutionSwapData")){
-  secretSanta=JSON.parse(localStorage.getItem("resolutionSwapData"));
-}else{
-  secretSanta=generateAssignments();
-  localStorage.setItem("resolutionSwapData",JSON.stringify(secretSanta));
-}
+const secretSanta = generateAssignments();
 
 // ================= UI =================
-function reveal(){
-  const name=document.getElementById("nameInput").value.trim().toUpperCase();
-  const chit=document.getElementById("chitResult");
-  const sound=document.getElementById("chitSound");
+function reveal() {
+  const name = document.getElementById("nameInput").value.trim().toUpperCase();
+  const box = document.getElementById("result");
+  const sound = document.getElementById("sound");
 
-  if(!secretSanta[name]){
-    chit.style.display="block";
-    chit.innerText="Name not found 😕";
+  if (!secretSanta[name]) {
+    box.style.display = "block";
+    box.innerText = "Name not found 😕";
     return;
   }
 
   sound.play();
-  chit.style.display="block";
-  chit.innerHTML="🎉 You got<br><b>"+secretSanta[name]+"</b>";
-
-  for(let i=0;i<20;i++){
-    let c=document.createElement("div");
-    c.className="confetti";
-    c.style.left=Math.random()*100+"vw";
-    c.style.background=`hsl(${Math.random()*360},100%,50%)`;
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),3000);
-  }
+  box.style.display = "block";
+  box.innerHTML = "🎉 You got<br><b>" + secretSanta[name] + "</b>";
 }
 </script>
 
